@@ -1,5 +1,8 @@
 # Smooth N Control
 Given a 2D path, this package will make it smoother, generate trajectories, and control a robot to complete the path.
+* Red Markers represent the original path.
+* Green Markers represent the smoothed pahh.
+* Purple Arrow Markers represent the trajectory.
 
 ## Setup
 1. Clone the following repositories into your ROS2 Humble workspace:
