@@ -1,0 +1,5 @@
+# SmoothPath.srv
+
+std_msgs/Float64MultiArray path            # Request: 2D vector (flattened array with shape)
+---
+std_msgs/Float64MultiArray smoothed_path   # Response: 2D vector (flattened array with shape)
