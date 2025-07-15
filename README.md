@@ -1,14 +1,15 @@
 # Smooth N Control
 Given a 2D path, this package will make it smoother, generate trajectories, and control a robot to complete the path.
 * Red Markers represent the original path.
-* Green Markers represent the smoothed pahh.
+* Green Markers represent the smoothed path.
 * Purple Arrow Markers represent the trajectory.
 
 ## Setup
 1. Clone the following repositories into your ROS2 Humble workspace:
-   * wheel_robot_v3[https://github.com/The-Bloop/wheel_robot_v3]
-   * Current[https://github.com/The-Bloop/smooth_n_control]
-2. Install the following packages:
+   * [wheel_robot_v3](https://github.com/The-Bloop/wheel_robot_v3)
+   * [Current](https://github.com/The-Bloop/smooth_n_control)
+2. Install Gazebo Classic.
+3. Install the following packages:
     ```
     sudo apt install -y ros-humble-robot-localization
     sudo apt install -y ros-humble-xacro
