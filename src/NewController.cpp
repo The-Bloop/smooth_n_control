@@ -34,6 +34,9 @@ private:
 
     int findNextIdx() const
     {
+        if(goal_idx_ >= (int)trajectory_.size() - 1)
+            return goal_idx_;
+
         int min_idx = 0;
         double min_dist = 1e9;
         for (size_t i = goal_idx_; i < goal_idx_ + 3; ++i) {
@@ -70,15 +73,17 @@ private:
         double angular = Kp_ang * theta;
 
         // When close to goal, reorient to final yaw
-        if (goal_idx == (int)trajectory_.size() - 1 && rho < 0.10) {
+        if (goal_idx == (int)trajectory_.size() - 1 && rho < 0.250) {
             linear = 0.0;
             angular = 2.5 * yaw_error;
-            if (std::fabs(yaw_error) < 0.01) {
+            std::cout<<"Yaw Error: "<< std::fabs(yaw_error)<< "\n";
+            if (std::fabs(yaw_error) < 0.1) {
                 publish_zero(); // Stop at the final pose
                 RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 2000, "Goal reached, stopped.");
+                rclcpp::shutdown();
                 return;
             }
-        } else if (rho < 0.10) {
+        } else if (rho < 0.250) {
             linear = 0.0;
             angular = 1.7 * yaw_error;
         }

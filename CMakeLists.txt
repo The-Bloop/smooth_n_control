@@ -18,8 +18,6 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED) 
 find_package(tf2_ros REQUIRED)
 
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SmoothPath.srv"
   DEPENDENCIES 

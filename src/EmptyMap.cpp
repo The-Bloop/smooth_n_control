@@ -1,8 +1,6 @@
 #include "rclcpp/rclcpp.hpp"
-
 #include <chrono>
 #include <cstdlib>
-
 #include "nav_msgs/msg/occupancy_grid.hpp"
 
 
