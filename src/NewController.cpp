@@ -91,7 +91,7 @@ private:
 
         // Limits
         linear  = std::clamp(linear, -1.0, 1.0);
-        angular = std::clamp(angular, -1.2, 1.2);
+        angular = std::clamp(angular, -2.5, 2.5);
 
         geometry_msgs::msg::Twist twist;
         twist.linear.x  = linear;
