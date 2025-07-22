@@ -18,10 +18,29 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED) 
 find_package(tf2_ros REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
+set(msg_files
+  "msg/Point2d.msg"
+  "msg/Pose2d.msg"
+  "msg/Path.msg"
+  "msg/Trajectory.msg"
+)
+
+set(srv_files
   "srv/SmoothPath.srv"
+  "srv/CreateTrajectory.srv"
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  ${srv_files}
   DEPENDENCIES 
   std_msgs
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
+rosidl_get_typesupport_target(cpp_typesupport_target
+  ${PROJECT_NAME} rosidl_typesupport_cpp
 )
 #rosidl_default_generators
 
@@ -29,10 +48,12 @@ add_executable(smooth_path_server src/SmoothPathServer.cpp)
 ament_target_dependencies(smooth_path_server rclcpp std_msgs smooth_n_control)
 
 add_executable(smooth_path_client src/PathSmoothing.cpp)
-ament_target_dependencies(smooth_path_client rclcpp std_msgs visualization_msgs smooth_n_control geometry_msgs tf2 tf2_geometry_msgs nav_msgs)
+ament_target_dependencies(smooth_path_client rclcpp std_msgs visualization_msgs smooth_n_control geometry_msgs tf2 tf2_geometry_msgs nav_msgs )
 
 add_executable(empty_map_publisher src/EmptyMap.cpp)
 ament_target_dependencies(empty_map_publisher rclcpp nav_msgs)
+
+target_link_libraries(smooth_path_client "${cpp_typesupport_target}")
 
 install(TARGETS 
   smooth_path_server
@@ -41,7 +62,7 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME})
 
 install(
-  DIRECTORY srv src include launch rviz worlds
+  DIRECTORY srv msg src include launch rviz worlds 
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -11,6 +11,8 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "smooth_n_control/srv/smooth_path.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
+#include "smooth_n_control/msg/path.hpp"
+#include "smooth_n_control/msg/point2d.hpp"
 
 #include "PathMarkerPublisher.cpp"
 #include "PathSegment.cpp"
@@ -21,38 +23,37 @@
 using namespace std::chrono_literals;
 
 // Helper: Convert a 2D vector to Float64MultiArray
-std_msgs::msg::Float64MultiArray vector2DToMultiArray(const std::vector<std::vector<double>> & vec) {
-    std_msgs::msg::Float64MultiArray msg;
+smooth_n_control::msg::Path vector2DToPath(const std::vector<std::vector<double>> & vec) {
+    smooth_n_control::msg::Path msg;
     if (vec.empty()) return msg;
     size_t rows = vec.size();
-    size_t cols = vec[0].size();
-    msg.layout.dim.resize(2);
-    msg.layout.dim[0].label = "rows";
-    msg.layout.dim[0].size = rows;
-    msg.layout.dim[0].stride = rows * cols;
-    msg.layout.dim[1].label = "cols";
-    msg.layout.dim[1].size = cols;
-    msg.layout.dim[1].stride = cols;
-    msg.layout.data_offset = 0;
-    msg.data.resize(rows * cols);
-    for (size_t i = 0; i < rows; ++i)
-        for (size_t j = 0; j < cols; ++j)
-            msg.data[i * cols + j] = vec[i][j];
+    for (size_t i = 0; i < rows; i++)
+    {
+        smooth_n_control::msg::Point2d point;
+        point.x = vec[i][0];
+        point.y = vec[i][1];
+        msg.points.push_back(point);
+    }
+
     return msg;
 }
 
 // Helper: Convert Float64MultiArray to 2D vector
-std::vector<std::vector<double>> multiArrayTo2DVector(const std_msgs::msg::Float64MultiArray & msg) {
+std::vector<std::vector<double>> pathTo2DVector(const smooth_n_control::msg::Path & msg) {
     std::vector<std::vector<double>> result;
-    if (msg.layout.dim.size() != 2) return result;
-    size_t rows = msg.layout.dim[0].size;
-    size_t cols = msg.layout.dim[1].size;
+    if (msg.points.size() <= 2) return result;
+    size_t rows = msg.points.size();
+    size_t cols = 2;
     result.resize(rows, std::vector<double>(cols));
     for (size_t i = 0; i < rows; ++i)
-        for (size_t j = 0; j < cols; ++j)
-            result[i][j] = msg.data[i * cols + j];
+    {
+        result[i][0] = msg.points[i].x;
+        result[i][1] = msg.points[i].y;
+    }
     return result;
 }
+
+
 
 class SmoothPathClient : public rclcpp::Node
 {
@@ -69,9 +70,9 @@ public:
         original_marker_pub = std::make_shared<PathMarkerPublisher>(shared_from_this(), "original_path_plan");
     }
 
-    std::vector<std::vector<double>> send_and_show_path(const std::vector<std::vector<double>> &path)
+    smooth_n_control::msg::Path send_and_show_path(smooth_n_control::msg::Path &path)
     {
-        std::vector<std::vector<double>> smoothed_path;
+        smooth_n_control::msg::Path smoothed_path;
         if (!client_->wait_for_service(10s)) {
             RCLCPP_ERROR(this->get_logger(), "Service not available after waiting. Quitting.");
             rclcpp::shutdown();
@@ -82,7 +83,7 @@ public:
         original_marker_pub->publishPathMarker(path, original_color, 0.05);
 
         auto request = std::make_shared<smooth_n_control::srv::SmoothPath::Request>();
-        request->path = vector2DToMultiArray(path);
+        request->path = path;
 
         RCLCPP_INFO(this->get_logger(), "Requesting path smoothing service...");
         auto future = client_->async_send_request(request);
@@ -91,7 +92,7 @@ public:
         // Wait for the response (spin until ready)
         if (rclcpp::spin_until_future_complete(shared_from_this(), future) == rclcpp::FutureReturnCode::SUCCESS) {
             auto response = future.get();
-            smoothed_path = multiArrayTo2DVector(response->smoothed_path);
+            smoothed_path = response->smoothed_path;
 
             std::array<float, 4> smooth_color = {0.0, 1.0, 0.0, 1.0}; // Green RGBA
             smooth_marker_pub_->publishPathMarker(smoothed_path, smooth_color, 0.05);
@@ -110,9 +111,9 @@ private:
     std::shared_ptr<PathMarkerPublisher> original_marker_pub;
 };
 
-std::vector<std::vector<double>> read2DPointsFromFile(const std::string& file_path)
+smooth_n_control::msg::Path read2DPointsFromFile(const std::string& file_path)
 {
-    std::vector<std::vector<double>> points;
+    smooth_n_control::msg::Path points;
     std::ifstream infile(file_path);
     if (!infile) {
         std::cerr << "Could not open file: " << file_path << std::endl;
@@ -128,7 +129,10 @@ std::vector<std::vector<double>> read2DPointsFromFile(const std::string& file_pa
             std::cerr << "Skipping invalid line: " << line << std::endl;
             continue;
         }
-        points.push_back({x, y});
+        smooth_n_control::msg::Point2d point;
+        point.x = x;
+        point.y = y;
+        points.points.push_back(point);
     }
     return points;
 }
@@ -139,6 +143,7 @@ int main(int argc, char **argv)
 
     auto client_node = std::make_shared<SmoothPathClient>();
     client_node->create_marker_pubs();
+    auto path_pub = client_node->create_publisher<smooth_n_control::msg::Path>("smoothed_path", 10);
 
     std::string file_path = argv[1];
 
@@ -148,7 +153,11 @@ int main(int argc, char **argv)
     // Path Smoothing
     auto smoothed_path = client_node->send_and_show_path(path);
 
+    path_pub->publish(smoothed_path);
+
     rclcpp::spin_some(client_node);
+
+    
 
     // Path Segmentation
     PathSegmenter segmenter(0.05, 3);

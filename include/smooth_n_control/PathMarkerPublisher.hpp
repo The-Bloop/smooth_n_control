@@ -9,7 +9,7 @@ class PathMarkerPublisher
     public:
         PathMarkerPublisher(const rclcpp::Node::SharedPtr &node, const std::string &topic_name);
 
-        void publishPathMarker(const std::vector<std::vector<double>>& path, const std::array<float, 4>& color, double line_width);
+        void publishPathMarker(const smooth_n_control::msg::Path& path, const std::array<float, 4>& color, double line_width);
         
     private:
         rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;

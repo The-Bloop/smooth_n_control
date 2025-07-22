@@ -1,37 +1,36 @@
 #include "../include/smooth_n_control/SmoothPathServer.hpp"
+#include "smooth_n_control/msg/path.hpp"
+#include "smooth_n_control/msg/point2d.hpp"
 
 #include "CSpline.cpp"
 
-std::vector<std::vector<double>> multiArrayTo2DVector(const std_msgs::msg::Float64MultiArray & msg) {
+std::vector<std::vector<double>> pathTo2DVector(const smooth_n_control::msg::Path & msg) {
     std::vector<std::vector<double>> result;
-    if (msg.layout.dim.size() != 2) return result;
-    size_t rows = msg.layout.dim[0].size;
-    size_t cols = msg.layout.dim[1].size;
+    if (msg.points.size() <= 2) return result;
+    size_t rows = msg.points.size();
+    size_t cols = 2;
     result.resize(rows, std::vector<double>(cols));
     for (size_t i = 0; i < rows; ++i)
-        for (size_t j = 0; j < cols; ++j)
-            result[i][j] = msg.data[i * cols + j];
+    {
+        result[i][0] = msg.points[i].x;
+        result[i][1] = msg.points[i].y;
+    }
     return result;
 }
 
 // Converts from 2D std::vector to ROS Float64MultiArray
-std_msgs::msg::Float64MultiArray vector2DToMultiArray(const std::vector<std::vector<double>> & vec) {
-    std_msgs::msg::Float64MultiArray msg;
+smooth_n_control::msg::Path vector2DToPath(const std::vector<std::vector<double>> & vec) {
+    smooth_n_control::msg::Path msg;
     if (vec.empty()) return msg;
     size_t rows = vec.size();
-    size_t cols = vec[0].size();
-    msg.layout.dim.resize(2);
-    msg.layout.dim[0].label = "rows";
-    msg.layout.dim[0].size = rows;
-    msg.layout.dim[0].stride = rows * cols;
-    msg.layout.dim[1].label = "cols";
-    msg.layout.dim[1].size = cols;
-    msg.layout.dim[1].stride = cols;
-    msg.layout.data_offset = 0;
-    msg.data.resize(rows * cols);
-    for (size_t i = 0; i < rows; ++i)
-        for (size_t j = 0; j < cols; ++j)
-            msg.data[i * cols + j] = vec[i][j];
+    for (size_t i = 0; i < rows; i++)
+    {
+        smooth_n_control::msg::Point2d point;
+        point.x = vec[i][0];
+        point.y = vec[i][1];
+        msg.points.push_back(point);
+    }
+
     return msg;
 }
 
@@ -48,21 +47,14 @@ void SmoothPathServer::handle_service(
         std::shared_ptr<smooth_n_control::srv::SmoothPath::Response> response) {
 
     // Convert the input to std::vector<std::vector<double>>
-        auto in_path = multiArrayTo2DVector(request->path);
-
-        // Smooth it
-        // RDP rdp_algo(1.0);          // You can parametrise these
-        // Chaikin chaikin_algo(3);
+        auto in_path = pathTo2DVector(request->path);
 
         CubicSpline2D spline(in_path);
-
-        // auto simplified = rdp_algo.simplify(in_path);
-        // auto smoothed = chaikin_algo.smooth(in_path);
 
         auto smoothed = spline.interpolate(10);
 
         // Convert back to ROS message
-        response->smoothed_path = vector2DToMultiArray(smoothed);
+        response->smoothed_path = vector2DToPath(smoothed);
         RCLCPP_INFO(this->get_logger(), "Processed smooth_path service call.");
 }
 

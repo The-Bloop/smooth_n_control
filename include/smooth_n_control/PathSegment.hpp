@@ -20,7 +20,7 @@ public:
           min_points_per_section_(min_points_per_section) {}
 
     // Segments the path and updates internal sections
-    void segment(const std::vector<std::vector<double>>& path);
+    void segment(const smooth_n_control::msg::Path& path);
 
     // Get the segments
     const std::vector<Section>& getSections() const { return sections_; }
@@ -35,9 +35,9 @@ private:
     int min_points_per_section_;
     std::vector<Section> sections_;
 
-    static double angleBetween(const std::vector<double>& p0,
-                               const std::vector<double>& p1,
-                               const std::vector<double>& p2);
+    static double angleBetween(const smooth_n_control::msg::Point2d& p0,
+                               const smooth_n_control::msg::Point2d& p1,
+                               const smooth_n_control::msg::Point2d& p2);
 };
 
 #endif

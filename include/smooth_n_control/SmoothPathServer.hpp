@@ -1,6 +1,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "smooth_n_control/srv/smooth_path.hpp" // Replace with your actual package name
+#include "smooth_n_control/msg/path.hpp"
 
 #include "CSpline.hpp"
 

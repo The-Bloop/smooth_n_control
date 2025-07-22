@@ -40,7 +40,7 @@ private:
 
         int min_idx = 0;
         double min_dist = 1e9;
-        for (size_t i = goal_idx_; i < goal_idx_ + 3; ++i) {
+        for (int i = goal_idx_; i < goal_idx_ + 3; ++i) {
             double dx = robot_x_ - std::get<0>(trajectory_[i]);
             double dy = robot_y_ - std::get<1>(trajectory_[i]);
             double d = std::hypot(dx, dy);
