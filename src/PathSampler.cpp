@@ -1,5 +1,7 @@
 #include "../include/smooth_n_control/PathSampler.hpp"
 #include <cmath>
+#include "smooth_n_control/msg/pose2d.hpp"
+#include "smooth_n_control/msg/trajectory.hpp"
 
 // ---------- Internal helpers ------------
 
@@ -79,43 +81,44 @@ double PathSampler::trapDistanceAtTime(const TrapezoidProfile& prof, double t) c
     }
 }
 
-std::tuple<double, double, double>
+smooth_n_control::msg::Pose2d
 PathSampler::interpolateSectionPose(const std::vector<std::vector<double>>& pts,
                                            const std::vector<double>& cum_dist,
                                            double d_query) const
 {
+    smooth_n_control::msg::Pose2d pose;
     size_t idx = 0;
     while (idx + 1 < cum_dist.size() && cum_dist[idx+1] < d_query) ++idx;
     if (idx+1 == cum_dist.size()) idx = cum_dist.size()-2;
     double seg_len = cum_dist[idx+1] - cum_dist[idx];
     double frac = (seg_len > 0) ? (d_query - cum_dist[idx]) / seg_len : 0.0;
-    double x = pts[idx][0] + frac * (pts[idx+1][0] - pts[idx][0]);
-    double y = pts[idx][1] + frac * (pts[idx+1][1] - pts[idx][1]);
+    pose.point.x = pts[idx][0] + frac * (pts[idx+1][0] - pts[idx][0]);
+    pose.point.y = pts[idx][1] + frac * (pts[idx+1][1] - pts[idx][1]);
     double dx = pts[idx+1][0] - pts[idx][0];
     double dy = pts[idx+1][1] - pts[idx][1];
-    double theta = std::atan2(dy, dx);
-    return {x, y, theta};
+    pose.yaw = std::atan2(dy, dx);
+    return pose;
 }
 
 // ---------- Main API ------------
 
-std::vector<std::tuple<double, double, double>>
+smooth_n_control::msg::Trajectory
 PathSampler::sampleSection(const std::vector<std::vector<double>>& section_points,
                                  double v_start, double v_end)
 {
-    std::vector<std::tuple<double, double, double>> poses;
-    if(section_points.size() < 2) return poses;
+    smooth_n_control::msg::Trajectory trajectory;
+    if(section_points.size() < 2) return trajectory;
 
     auto cum_dist = computeCumulativeDistance(section_points);
     double total_dist = cum_dist.back();
-    if (total_dist <= 0.0) return poses;
+    if (total_dist <= 0.0) return trajectory;
     TrapezoidProfile prof = calcTrapezoidProfile(total_dist, v_start, v_end);
 
     for(double t = 0; t < prof.t_total; t += dt_) {
         double d = trapDistanceAtTime(prof, t);
-        poses.push_back(interpolateSectionPose(section_points, cum_dist, d));
+        trajectory.poses.push_back(interpolateSectionPose(section_points, cum_dist, d));
     }
     // Ensure endpoint is included
-    poses.push_back(interpolateSectionPose(section_points, cum_dist, total_dist));
-    return poses;
+    trajectory.poses.push_back(interpolateSectionPose(section_points, cum_dist, total_dist));
+    return trajectory;
 }

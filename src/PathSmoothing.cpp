@@ -7,17 +7,12 @@
 #include <fstream>
 #include <sstream>
 
-#include <std_msgs/msg/float64_multi_array.hpp>
-#include "visualization_msgs/msg/marker.hpp"
 #include "smooth_n_control/srv/smooth_path.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
-#include "smooth_n_control/msg/path.hpp"
-#include "smooth_n_control/msg/point2d.hpp"
 
 #include "PathMarkerPublisher.cpp"
 #include "PathSegment.cpp"
 #include "PathSampler.cpp"
-#include "TrajectMarkerPublish.cpp"
 #include "NewController.cpp"
 
 using namespace std::chrono_literals;
@@ -141,9 +136,10 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
 
-    auto client_node = std::make_shared<SmoothPathClient>();
-    client_node->create_marker_pubs();
-    auto path_pub = client_node->create_publisher<smooth_n_control::msg::Path>("smoothed_path", 10);
+    auto smooth_client_node = std::make_shared<SmoothPathClient>();
+    smooth_client_node->create_marker_pubs();
+
+    auto path_pub = smooth_client_node->create_publisher<smooth_n_control::msg::Path>("smoothed_path", 10);
 
     std::string file_path = argv[1];
 
@@ -151,57 +147,17 @@ int main(int argc, char **argv)
     auto path = read2DPointsFromFile(file_path);
 
     // Path Smoothing
-    auto smoothed_path = client_node->send_and_show_path(path);
+    auto smoothed_path = smooth_client_node->send_and_show_path(path);
 
     path_pub->publish(smoothed_path);
 
-    rclcpp::spin_some(client_node);
-
+    rclcpp::spin_some(smooth_client_node);
     
+    // // //Trajectory Control
+    // auto control_node = std::make_shared<PIDTrajectoryFollower>(all_trajectory);
+    // RCLCPP_INFO(control_node->get_logger(), "Starting up the controller.");
+    // rclcpp::spin(control_node);
 
-    // Path Segmentation
-    PathSegmenter segmenter(0.05, 3);
-    segmenter.segment(smoothed_path);
-
-    const auto& sections = segmenter.getSections();
-
-    // Path Sampling for Trajectory points
-    double v_max = 1.0;   // velocity
-    double a_max = 0.5;   // acceleration
-    double dt = 0.25;      // time step
-
-    PathSampler sampler(v_max, a_max, dt);
-
-    double v_start = 0.0, v_end = 0.0;
-    double v_prev = v_start;
-
-    auto node = rclcpp::Node::make_shared("arrow_marker_publisher_node");
-
-    std::array<float, 4> traj_color = {1.0, 0.0, 1.0, 1.0};
-
-    TrajectMarkerPublish marker_pub(node, "pose_arrows", 0.1, traj_color, "a");
-
-    std::vector<std::tuple<double, double, double>> all_poses;
-
-    //Trajectory Generation and Marker Creation
-    for(size_t i = 0; i < sections.size(); ++i)
-    {
-        double curr_v_start = v_prev;
-        double curr_v_end = (i < sections.size()-1) ? v_max : v_end;
-        auto poses = sampler.sampleSection(sections[i].points, curr_v_start, curr_v_end);
-        marker_pub.add_markers(poses);
-        all_poses.insert(all_poses.end(), poses.begin(), poses.end());
-        v_prev = v_max;
-    }
-
-    marker_pub.publish();
-
-    rclcpp::spin_some(node);
-
-    //Trajectory Control
-    auto control_node = std::make_shared<PIDTrajectoryFollower>(all_poses);
-    rclcpp::spin(control_node);
-
-    rclcpp::shutdown();
+    // rclcpp::shutdown();
     return 0;
 }

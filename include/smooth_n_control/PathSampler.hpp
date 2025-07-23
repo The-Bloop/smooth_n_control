@@ -4,6 +4,9 @@
 #include <vector>
 #include <tuple>
 
+#include "smooth_n_control/msg/pose2d.hpp"
+#include "smooth_n_control/msg/trajectory.hpp"
+
 class PathSampler {
 public:
     PathSampler(double v_max, double a_max, double dt)
@@ -11,7 +14,7 @@ public:
 
     // Main function: sample (x, y, theta) at dt intervals along a section's points,
     // starting at v_start and ending at v_end (m/s)
-    std::vector<std::tuple<double, double, double>>
+    smooth_n_control::msg::Trajectory
     sampleSection(const std::vector<std::vector<double>>& section_points,
                   double v_start = 0.0, double v_end = 0.0);
 
@@ -34,7 +37,7 @@ private:
 
     double trapDistanceAtTime(const TrapezoidProfile& prof, double t) const;
 
-    std::tuple<double, double, double>
+    smooth_n_control::msg::Pose2d
     interpolateSectionPose(const std::vector<std::vector<double>>& pts,
                           const std::vector<double>& cum_dist,
                           double d_query) const;

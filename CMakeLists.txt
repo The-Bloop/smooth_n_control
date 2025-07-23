@@ -48,10 +48,16 @@ add_executable(smooth_path_server src/SmoothPathServer.cpp)
 ament_target_dependencies(smooth_path_server rclcpp std_msgs smooth_n_control)
 
 add_executable(smooth_path_client src/PathSmoothing.cpp)
-ament_target_dependencies(smooth_path_client rclcpp std_msgs visualization_msgs smooth_n_control geometry_msgs tf2 tf2_geometry_msgs nav_msgs )
+ament_target_dependencies(smooth_path_client rclcpp std_msgs smooth_n_control visualization_msgs geometry_msgs tf2 tf2_geometry_msgs nav_msgs )
 
 add_executable(empty_map_publisher src/EmptyMap.cpp)
 ament_target_dependencies(empty_map_publisher rclcpp nav_msgs)
+
+add_executable(create_trajectory_server src/TrajectoryServer.cpp)
+ament_target_dependencies(create_trajectory_server rclcpp smooth_n_control visualization_msgs geometry_msgs tf2 tf2_geometry_msgs)
+
+add_executable(create_trajectory_client src/TrajectoryClient.cpp)
+ament_target_dependencies(create_trajectory_client rclcpp smooth_n_control visualization_msgs geometry_msgs tf2 tf2_geometry_msgs)
 
 target_link_libraries(smooth_path_client "${cpp_typesupport_target}")
 
@@ -59,6 +65,8 @@ install(TARGETS
   smooth_path_server
   smooth_path_client
   empty_map_publisher
+  create_trajectory_server
+  create_trajectory_client
   DESTINATION lib/${PROJECT_NAME})
 
 install(

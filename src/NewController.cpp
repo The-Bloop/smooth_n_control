@@ -6,11 +6,14 @@
 #include <cmath>
 #include <algorithm>
 
+#include "smooth_n_control/msg/pose2d.hpp"
+#include "smooth_n_control/msg/trajectory.hpp"
+
 
 class PIDTrajectoryFollower : public rclcpp::Node
 {
 public:
-    PIDTrajectoryFollower(const std::vector<std::tuple<double, double, double>>& trajectory)
+    PIDTrajectoryFollower(const smooth_n_control::msg::Trajectory& trajectory)
     : Node("pid_trajectory_follower"), trajectory_(trajectory)
     {
         cmd_vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
@@ -35,18 +38,18 @@ private:
 
     int findNextIdx() const
     {
-        if(goal_idx_ >= (int)trajectory_.size() - 1)
+        if(goal_idx_ >= (int)trajectory_.poses.size() - 1)
             return goal_idx_;
 
         int min_idx = 0;
         double min_dist = 1e9;
         for (int i = goal_idx_; i < goal_idx_ + 3; ++i) {
-            double dx = robot_x_ - std::get<0>(trajectory_[i]);
-            double dy = robot_y_ - std::get<1>(trajectory_[i]);
+            double dx = robot_x_ - trajectory_.poses[i].point.x;
+            double dy = robot_y_ - trajectory_.poses[i].point.y;
             double d = std::hypot(dx, dy);
             if (d < min_dist) { min_dist = d; min_idx = i; }
         }
-        if (min_idx + 1 < static_cast<int>(trajectory_.size()))
+        if (min_idx + 1 < static_cast<int>(trajectory_.poses.size()))
             return min_idx + 1;
         else
             return min_idx;
@@ -54,10 +57,12 @@ private:
 
     void control_loop()
     {
-        if (!odom_received_ || trajectory_.empty()) return;
+        if (!odom_received_ || trajectory_.poses.empty()) return;
 
         int goal_idx = findNextIdx();
-        auto [goal_x, goal_y, goal_theta] = trajectory_.at(goal_idx);
+        auto goal_x = trajectory_.poses[goal_idx].point.x;
+        auto goal_y = trajectory_.poses[goal_idx].point.y;
+        auto goal_theta = trajectory_.poses[goal_idx].yaw;
 
         double dx = goal_x - robot_x_;
         double dy = goal_y - robot_y_;
@@ -74,10 +79,9 @@ private:
         double angular = Kp_ang * theta;
 
         // When close to goal, reorient to final yaw
-        if (goal_idx == (int)trajectory_.size() - 1 && rho < 0.250) {
+        if (goal_idx == (int)trajectory_.poses.size() - 1 && rho < 0.250) {
             linear = 0.0;
             angular = 2.5 * yaw_error;
-            std::cout<<"Yaw Error: "<< std::fabs(yaw_error)<< "\n";
             if (std::fabs(yaw_error) < 0.1) {
                 publish_zero(); // Stop at the final pose
                 RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 2000, "Goal reached, stopped.");
@@ -106,7 +110,7 @@ private:
         cmd_vel_pub_->publish(twist);
     }
 
-    std::vector<std::tuple<double, double, double>> trajectory_;
+    smooth_n_control::msg::Trajectory trajectory_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::TimerBase::SharedPtr timer_;

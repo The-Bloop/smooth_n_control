@@ -3,10 +3,16 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
-#include <tuple>
 #include <string>
-#include <array>
 #include <vector>
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include <tf2/transform_datatypes.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/convert.h>
+
+#include "smooth_n_control/msg/pose2d.hpp"
+#include "smooth_n_control/msg/trajectory.hpp"
 
 
 class TrajectMarkerPublish {
@@ -18,7 +24,7 @@ public:
         const std::array<float,4>& color_rgba,
         const std::string& ns) ;
 
-    void add_markers(const std::vector<std::tuple<double, double, double>>& poses);
+    void add_markers(const smooth_n_control::msg::Trajectory& trajectory);
 
     void publish();
 

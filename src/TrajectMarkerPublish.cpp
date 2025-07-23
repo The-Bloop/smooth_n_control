@@ -1,10 +1,10 @@
 #include "../include/smooth_n_control/TrajectMarkerPublish.hpp"
 
-#include <rclcpp/rclcpp.hpp>
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include <tf2/transform_datatypes.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/convert.h>
+
+
+// #include "smooth_n_control/msg/pose2d.hpp"
+// #include "smooth_n_control/msg/trajectory.hpp"
+
 
 TrajectMarkerPublish::TrajectMarkerPublish(rclcpp::Node::SharedPtr node, const std::string& topic, double scale, const std::array<float,4>& color_rgba, const std::string& ns)
         : node_(node),
@@ -16,10 +16,10 @@ TrajectMarkerPublish::TrajectMarkerPublish(rclcpp::Node::SharedPtr node, const s
     id_ = 0;
 }
 
-void TrajectMarkerPublish::add_markers(const std::vector<std::tuple<double, double, double>>& poses)
+void TrajectMarkerPublish::add_markers(const smooth_n_control::msg::Trajectory& trajectory)
 {
     rclcpp::Time now = node_->now();
-    for (const auto& pose : poses) {
+    for (const auto& pose : trajectory.poses) {
         visualization_msgs::msg::Marker marker;
         marker.header.frame_id = "map";
         marker.header.stamp = now;
@@ -27,10 +27,10 @@ void TrajectMarkerPublish::add_markers(const std::vector<std::tuple<double, doub
         marker.id = id_++;
         marker.type = visualization_msgs::msg::Marker::ARROW;
         marker.action = visualization_msgs::msg::Marker::ADD;
-        marker.pose.position.x = std::get<0>(pose);
-        marker.pose.position.y = std::get<1>(pose);
+        marker.pose.position.x = pose.point.x;
+        marker.pose.position.y = pose.point.y;
         marker.pose.position.z = 0.0;
-        marker.pose.orientation = yawToQuaternion(std::get<2>(pose));
+        marker.pose.orientation = yawToQuaternion(pose.yaw);
         marker.scale.x = scale_;         // Arrow shaft length
         marker.scale.y = scale_ * 0.3;   // Arrow shaft diameter
         marker.scale.z = scale_ * 0.3;   // Arrow head diameter

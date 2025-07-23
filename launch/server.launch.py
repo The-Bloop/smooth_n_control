@@ -95,6 +95,13 @@ def generate_launch_description():
             output='screen',
             name='empty_map_publisher'
     )
+
+    create_trajectory_server_node = Node(
+            package='smooth_n_control',  
+            executable='create_trajectory_server', 
+            output='screen',
+            name='create_trajectory_server'
+        )
     
     rviz_node = Node(
             package='rviz2',
@@ -130,6 +137,7 @@ def generate_launch_description():
     ld.add_action(joint_state_publisher_node)
     ld.add_action(robot_state_publisher_node)
     ld.add_action(smooth_path_server_node)
+    ld.add_action(create_trajectory_server_node)
     ld.add_action(gazebo_ros_spawner_node)
     ld.add_action(rviz_node)
     ld.add_action(empty_map_node)
