@@ -7,8 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /Map1
-        - /Trajectory1
-        - /RobotModel1
       Splitter Ratio: 0.5
     Tree Height: 631
   - Class: rviz_common/Selection
@@ -129,19 +127,6 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/Marker
       Enabled: true
-      Name: SmoothPath
-      Namespaces:
-        {}
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /smooth_path_plan
-      Value: true
-    - Class: rviz_default_plugins/Marker
-      Enabled: true
       Name: OriginalPath
       Namespaces:
         {}
@@ -152,6 +137,19 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /original_path_plan
+      Value: true
+    - Class: rviz_default_plugins/Marker
+      Enabled: true
+      Name: SmoothPath
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /smooth_path_plan
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -355,10 +353,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.389796495437622
+      Pitch: 1.3947964906692505
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.6554054021835327
+      Yaw: 1.6754053831100464
     Saved: ~
 Window Geometry:
   Displays:

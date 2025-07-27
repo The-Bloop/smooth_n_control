@@ -74,10 +74,10 @@ private:
     const std::shared_ptr<const MB::Feedback> feedback)
   {
     std::stringstream ss;
-    ss << "Next number in sequence received: ";
-    // for (auto pose : feedback->interim_message) {
-    //   ss << pose.point.x << ", "<< pose.point.y << ", " << pose.yaw;
-    // }
+    ss << "Current Pose (x,y,yaw): ";
+    ss << "(" << feedback->current_pose.point.x << ", "<< feedback->current_pose.point.y << ", " << feedback->current_pose.yaw << ")" << "; ";
+    ss << "Next Pose (x,y,yaw): ";
+    ss << "(" << feedback->next_pose.point.x << ", "<< feedback->next_pose.point.y << ", " << feedback->next_pose.yaw << ")";
     RCLCPP_INFO(this->get_logger(), ss.str().c_str());
   }
 
@@ -97,14 +97,12 @@ private:
         return;
     }
     std::stringstream ss;
-    ss << "Result received: ";
-    for (auto number : result.result->message) {
-      ss << number << " ";
+    for (auto letter : result.result->message) {
+      ss << (char)toupper(letter) << " ";
     }
     RCLCPP_INFO(this->get_logger(), ss.str().c_str());
-    // rclcpp::shutdown();
   }
-};  // class FibonacciActionClient
+}; 
 
 int main(int argc, char **argv)
 {

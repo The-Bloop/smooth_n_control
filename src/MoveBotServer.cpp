@@ -63,7 +63,6 @@ void MoveBotServer::execute(const std::shared_ptr<GoalHandleMB> goal_handle)
     rclcpp::Rate loop_rate(2);
     const auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<MB::Feedback>();
-    auto & sequence = feedback->interim_message;
     auto result = std::make_shared<MB::Result>();
 
     while(move_flag)
@@ -74,17 +73,17 @@ void MoveBotServer::execute(const std::shared_ptr<GoalHandleMB> goal_handle)
        current_pose.point.x = robot_y_;
        current_pose.yaw = robot_yaw_;
 
-       feedback->interim_message = current_pose;
+       feedback->current_pose = current_pose;
+       feedback->next_pose = trajectory_.poses[goal_idx_];
 
        goal_handle->publish_feedback(feedback);
 
        loop_rate.sleep();
     }
 
-    if (rclcpp::ok()) {
-      result->message = "All good";
+    if (rclcpp::ok() and !move_flag) {
+      result->message = "Goal Reached";
       goal_handle->succeed(result);
-      RCLCPP_INFO(this->get_logger(), "Goal succeeded");
     }
 
 }
@@ -137,9 +136,7 @@ void MoveBotServer::control_loop()
         angular = 2.5 * yaw_error;
         if (std::fabs(yaw_error) < 0.1) {
             publish_zero(); // Stop at the final pose
-            RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 2000, "Goal reached, stopped.");
             move_flag = false;
-            // rclcpp::shutdown();
             return;
         }
     } else if (rho < 0.250) {

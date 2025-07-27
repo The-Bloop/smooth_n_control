@@ -1,12 +1,10 @@
-# launch/smooth_path_and_rviz.launch.py
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess
-from launch.conditions import IfCondition
-from launch.substitutions import Command, LaunchConfiguration, FindExecutable, PathJoinSubstitution
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.substitutions import Command, LaunchConfiguration, FindExecutable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
@@ -81,40 +79,12 @@ def generate_launch_description():
         'robot_description': robot_description}],
         arguments=['--ros-args','--log-level',logger]
     )
-
-    smooth_path_server_node = Node(
-            package='smooth_n_control',  
-            executable='smooth_path_server', 
-            output='screen',
-            name='smooth_path_server'
-        )
     
     empty_map_node = Node(
             package='smooth_n_control',  
             executable='empty_map_publisher', 
             output='screen',
             name='empty_map_publisher'
-    )
-
-    create_trajectory_server_node = Node(
-            package='smooth_n_control',  
-            executable='create_trajectory_server', 
-            output='screen',
-            name='create_trajectory_server'
-        )
-    
-    move_bot_server_node = Node(
-        package='smooth_n_control',  
-        executable='move_bot_server', 
-        output='screen',
-        name='move_bot_server'
-    )
-
-    move_bot_client_node = Node(
-        package='smooth_n_control',  
-        executable='move_bot_client', 
-        output='screen',
-        name='move_bot_client'
     )
     
     rviz_node = Node(
@@ -150,10 +120,6 @@ def generate_launch_description():
     ld.add_action(robot_localization_launch)
     ld.add_action(joint_state_publisher_node)
     ld.add_action(robot_state_publisher_node)
-    ld.add_action(smooth_path_server_node)
-    ld.add_action(create_trajectory_server_node)
-    ld.add_action(move_bot_server_node)
-    ld.add_action(move_bot_client_node)
     ld.add_action(gazebo_ros_spawner_node)
     ld.add_action(rviz_node)
     ld.add_action(empty_map_node)

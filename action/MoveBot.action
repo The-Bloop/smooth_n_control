@@ -5,4 +5,5 @@ Trajectory trajectory
 string message
 ---
 #Feedback
-Pose2d interim_message
+Pose2d current_pose
+Pose2d next_pose
