@@ -30,9 +30,14 @@ set(srv_files
   "srv/CreateTrajectory.srv"
 )
 
+set(act_files
+  "action/MoveBot.action"
+)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   ${srv_files}
+  ${act_files}
   DEPENDENCIES 
   std_msgs
 )
@@ -59,6 +64,12 @@ ament_target_dependencies(create_trajectory_server rclcpp smooth_n_control visua
 add_executable(create_trajectory_client src/TrajectoryClient.cpp)
 ament_target_dependencies(create_trajectory_client rclcpp smooth_n_control visualization_msgs geometry_msgs tf2 tf2_geometry_msgs)
 
+add_executable(move_bot_server src/MoveBotServer.cpp)
+ament_target_dependencies(move_bot_server rclcpp rclcpp_action nav_msgs smooth_n_control visualization_msgs geometry_msgs tf2 tf2_geometry_msgs)
+
+add_executable(move_bot_client src/MoveBotClient.cpp)
+ament_target_dependencies(move_bot_client rclcpp rclcpp_action nav_msgs smooth_n_control visualization_msgs geometry_msgs tf2 tf2_geometry_msgs)
+
 target_link_libraries(smooth_path_client "${cpp_typesupport_target}")
 
 install(TARGETS 
@@ -67,10 +78,12 @@ install(TARGETS
   empty_map_publisher
   create_trajectory_server
   create_trajectory_client
+  move_bot_server
+  move_bot_client
   DESTINATION lib/${PROJECT_NAME})
 
 install(
-  DIRECTORY srv msg src include launch rviz worlds 
+  DIRECTORY srv msg src include launch rviz worlds action
   DESTINATION share/${PROJECT_NAME}
 )
 

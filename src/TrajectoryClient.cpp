@@ -22,6 +22,7 @@ public:
         client_ = this->create_client<smooth_n_control::srv::CreateTrajectory>("generate_trajectory");
         path_sub_ = create_subscription<smooth_n_control::msg::Path>(
             "/smoothed_path", 10, std::bind(&TrajectoryClient::path_callback, this, std::placeholders::_1));
+        RCLCPP_INFO(this->get_logger(), "Trajectory Client has been initialized. Waiting for smoothed path ...");
     }
 
     void create_pubs()
@@ -44,7 +45,7 @@ private:
         auto request = std::make_shared<smooth_n_control::srv::CreateTrajectory::Request>();
         request->smoothed_path = *msg.get();
 
-        RCLCPP_INFO(this->get_logger(), "Requesting trajectory generation service...");
+        RCLCPP_INFO(this->get_logger(), "Smoothed Path recevied. Requesting trajectory generation service...");
         auto future = client_->async_send_request(request,
             std::bind(&TrajectoryClient::service_response_callback, this, std::placeholders::_1));
 

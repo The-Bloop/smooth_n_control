@@ -1,0 +1,8 @@
+#Request
+Trajectory trajectory
+---
+#Result
+string message
+---
+#Feedback
+Pose2d interim_message
