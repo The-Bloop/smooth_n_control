@@ -70,7 +70,7 @@ void MoveBotServer::execute(const std::shared_ptr<GoalHandleMB> goal_handle)
        this-> control_loop();
        smooth_n_control::msg::Pose2d current_pose;
        current_pose.point.x = robot_x_;
-       current_pose.point.x = robot_y_;
+       current_pose.point.y = robot_y_;
        current_pose.yaw = robot_yaw_;
 
        feedback->current_pose = current_pose;
@@ -131,7 +131,7 @@ void MoveBotServer::control_loop()
     double angular = Kp_ang * theta;
 
     // When close to goal, reorient to final yaw
-    if (goal_idx == (int)trajectory_.poses.size() - 1 && rho < 0.250) {
+    if (goal_idx == (int)trajectory_.poses.size() - 1 && rho < 0.100) {
         linear = 0.0;
         angular = 2.5 * yaw_error;
         if (std::fabs(yaw_error) < 0.1) {
@@ -139,7 +139,7 @@ void MoveBotServer::control_loop()
             move_flag = false;
             return;
         }
-    } else if (rho < 0.250) {
+    } else if (rho < 0.100) {
         linear = 0.0;
         angular = 1.7 * yaw_error;
     }
