@@ -24,7 +24,7 @@ void TrajectoryServer::handle_service(const std::shared_ptr<smooth_n_control::sr
     // Path Sampling for Trajectory points
     double v_max = 1.0;   // velocity
     double a_max = 0.5;   // acceleration
-    double dt = 0.25;      // time step
+    double dt = 0.15;      // time step
 
     PathSampler sampler(v_max, a_max, dt);
 
@@ -41,7 +41,6 @@ void TrajectoryServer::handle_service(const std::shared_ptr<smooth_n_control::sr
         all_trajectory.poses.insert(all_trajectory.poses.end(), trajectory.poses.begin(), trajectory.poses.end());
         v_prev = v_max;
     }
-
     response->trajectory = all_trajectory;
     RCLCPP_INFO(this->get_logger(), "Trajectories generated and returned.");
 }

@@ -45,6 +45,7 @@ private:
 
     auto goal_msg = MB::Goal();
     goal_msg.trajectory = *msg.get();
+    // goal_msg.trajectory.pop_back();
 
     RCLCPP_INFO(this->get_logger(), "Sending goal");
 

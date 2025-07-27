@@ -119,6 +119,6 @@ PathSampler::sampleSection(const std::vector<std::vector<double>>& section_point
         trajectory.poses.push_back(interpolateSectionPose(section_points, cum_dist, d));
     }
     // Ensure endpoint is included
-    trajectory.poses.push_back(interpolateSectionPose(section_points, cum_dist, total_dist));
+    // trajectory.poses.push_back(interpolateSectionPose(section_points, cum_dist, total_dist));
     return trajectory;
 }

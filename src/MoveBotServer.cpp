@@ -60,7 +60,7 @@ void MoveBotServer::handle_accepted(const std::shared_ptr<GoalHandleMB> goal_han
 void MoveBotServer::execute(const std::shared_ptr<GoalHandleMB> goal_handle)
 {
 	RCLCPP_INFO(this->get_logger(), "Executing goal");
-    rclcpp::Rate loop_rate(2);
+    rclcpp::Rate loop_rate(4);
     const auto goal = goal_handle->get_goal();
     auto feedback = std::make_shared<MB::Feedback>();
     auto result = std::make_shared<MB::Result>();
@@ -145,7 +145,7 @@ void MoveBotServer::control_loop()
     }
 
         // Limits
-    linear  = std::clamp(linear, -1.0, 1.0);
+    linear  = std::clamp(linear, -2.0, 2.0);
     angular = std::clamp(angular, -2.5, 2.5);
 
     geometry_msgs::msg::Twist twist;
